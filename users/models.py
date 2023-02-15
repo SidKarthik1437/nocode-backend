@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+import uuid
 
 
 class userAccountManager(BaseUserManager):
@@ -26,8 +27,10 @@ class userAccountManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
+    id = models.UUIDField(primary_key=True default=uuid.uuid4, editable=False)
+    
     phone = models.CharField(max_length=10)
-    projects = models.TextField(blank=True)
+    projects = models.ForeignKey("Project", on_delete=models.CASCADE, null=True, blank=True)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -40,14 +43,42 @@ class User(AbstractBaseUser, PermissionsMixin):
     def getName(self):
         return self.name
 
-    def getShortName(self):
-        return self.name
+    def getID(self):
+        return self.id
+        # return self.name.strip().lower().replace(" ", "_")
 
     def __str__(self):
         return self.email
 
-    def add_project(self, element):
-        self.foo += "," + element if self.projects else element
+    # def add_project(self, element):
+    #     self.projects += "," + element if self.projects else element
+    #     return self.save()
 
-    def get_projects(self):
-        return self.foo.split(",") if self.projects else None
+    # def get_projects(self):
+    #     return self.projects.split(",") if self.projects else None
+
+class Project(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    # users = models.ManyToManyField(User, related_name="projects")
+    description = models.TextField(blank=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.id
+
+    def add_user(self, element):
+        self.users.add(element)
+
+    def get_users(self):
+        return self.users.all()
+
+    def get_owner(self):
+        return self.owner
+
+    def get_description(self):
+        return self.description
+
+    def get_date_created(self):
+        return self.date_created
