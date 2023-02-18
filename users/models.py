@@ -1,22 +1,23 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-import uuid
+import jsonfield
+from django.utils import timezone
 
 
 class userAccountManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError("User must have an email address")
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+    def create_user(self, username, password=None, **extra_fields):
+        if not username:
+            raise ValueError("User must have an username address")
+        # username = self.normalize_email(username)
+        user = self.model(username=username, **extra_fields)
 
         user.set_password(password)
         user.save()
 
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
-        user = self.create_user(email, password, **extra_fields)
+    def create_superuser(self, username, password, **extra_fields):
+        user = self.create_user(username, password, **extra_fields)
         user.is_superuser = True
         user.is_staff = True
         user.save()
@@ -27,46 +28,46 @@ class userAccountManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
-    id = models.UUIDField(primary_key=True default=uuid.uuid4, editable=False)
-    
+    username = models.CharField(max_length=255, blank=False, unique=True)
+
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     phone = models.CharField(max_length=10)
-    projects = models.ForeignKey("Project", on_delete=models.CASCADE, null=True, blank=True)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     objects = userAccountManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'phone']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['name', 'phone', 'email']
 
     def getName(self):
         return self.name
 
-    def getID(self):
-        return self.id
-        # return self.name.strip().lower().replace(" ", "_")
+    # def getID(self):
+    #     return self.id
+    #     # return self.name.strip().lower().replace(" ", "_")
 
-    def __str__(self):
-        return self.email
+    # def __str__(self):
+    #     return self.email
 
-    # def add_project(self, element):
-    #     self.projects += "," + element if self.projects else element
-    #     return self.save()
+    def add(self, element):
+        pass
 
     # def get_projects(self):
     #     return self.projects.split(",") if self.projects else None
 
+
 class Project(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=False, unique=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     # users = models.ManyToManyField(User, related_name="projects")
     description = models.TextField(blank=True)
-    date_created = models.DateTimeField(auto_now_add=True)
+    date_created = timezone.now()
 
     def __str__(self):
-        return self.id
+        return self.name
 
     def add_user(self, element):
         self.users.add(element)
@@ -82,3 +83,25 @@ class Project(models.Model):
 
     def get_date_created(self):
         return self.date_created
+
+
+class Script(models.Model):
+    name = models.CharField(max_length=255, blank=False, unique=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    owner = owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    nodes = jsonfield.JSONField()
+    edges = jsonfield.JSONField()
+    data = jsonfield.JSONField()
+    date_created = timezone.now()
+
+    def __str__(self):
+        return self.name
+
+    def getNodes(self):
+        return self.nodes
+
+    def getEdges(self):
+        return self.edges
+
+    def getData(self):
+        return self.edges
