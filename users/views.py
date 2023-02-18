@@ -1,7 +1,7 @@
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import User, Project, Script
+from .models import User, Project
 # from .serializers import UserSerializer, ProjectSerializer, ScriptSerializer
 from .serializers import *
 
@@ -36,5 +36,3 @@ def createProject(req, username):
         owner=User.objects.get(username=username))
 
     return Response(ProjectSerializer(project).data)
-
-

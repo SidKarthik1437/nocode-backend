@@ -1,3 +1,5 @@
+from .models import Script
+from rest_framework.serializers import ModelSerializer
 
 
 class ScriptSerializer(ModelSerializer):
