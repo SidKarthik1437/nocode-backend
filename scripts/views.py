@@ -23,6 +23,8 @@ def getScripts(req, username, project):
         res.append(ScriptSerializer(script).data)
     print(res)
     return Response(res)
+    
+   
 
 
 @api_view(['POST'])
@@ -32,5 +34,21 @@ def createScript(req, username, project):
         project=Project.objects.get(name=project),
         owner=User.objects.get(username=username),
     )
+
+    return Response(ScriptSerializer(script).data)
+
+@api_view(['POST'])
+def updateScript(req, username, project, name):
+    script = Script.objects.get(
+        name=name,
+        project=Project.objects.get(name=project),
+        owner=User.objects.get(username=username),
+    )
+
+    #script.name = req.data['name']
+    script.nodes = req.data['nodes']
+    script.edges = req.data['edges']
+    script.data = req.data['data']
+    script.save() 
 
     return Response(ScriptSerializer(script).data)
