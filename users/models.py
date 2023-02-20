@@ -5,21 +5,19 @@ from django.utils import timezone
 
 
 class userAccountManager(BaseUserManager):
-
-    def create_user(self, username, password=None, **extra_fields):
-        if not username:
-            raise ValueError("User must have an username")
-
-        user = self.model(username=username, ** extra_fields)
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("User must have an email address")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
 
         user.set_password(password)
         user.save()
 
         return user
 
-    def create_superuser(self, username, password, **extra_fields):
-        user = self.create_user(
-            username, password, **extra_fields)
+    def create_superuser(self, email, password, **extra_fields):
+        user = self.create_user(email, password, **extra_fields)
         user.is_superuser = True
         user.is_staff = True
         user.save()
@@ -28,6 +26,7 @@ class userAccountManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    # id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=255, blank=False, unique=True)
     email = models.EmailField(max_length=255, unique=True, blank=False)
     name = models.CharField(max_length=255, blank=False)
@@ -38,24 +37,25 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = userAccountManager()
 
-    USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = ['name', 'phone', 'email']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['name', 'phone', 'username']
 
     def getName(self):
         return self.name
 
-    # def getID(self):
-    #     return self.id
-    #     # return self.name.strip().lower().replace(" ", "_")
+    def getID(self):
+        return self.id
+        # return self.name.strip().lower().replace(" ", "_")
 
     def __str__(self):
-        return self.username
+        return self.email
 
     # def get_projects(self):
     #     return self.projects.split(",") if self.projects else None
 
 
 class Project(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, blank=False, unique=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     # users = models.ManyToManyField(User, related_name="projects")
@@ -63,7 +63,7 @@ class Project(models.Model):
     date_created = timezone.now()
 
     def __str__(self):
-        return self.name
+        return str(self.id)
 
     def add_user(self, element):
         self.users.add(element)
