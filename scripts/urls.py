@@ -5,6 +5,5 @@ urlpatterns = [
     path("get/", getScripts),
     path("create/", createScript),
     path("<str:name>/", updateScript),
-
-
+    path("<str:name>/execute", executeScript),
 ]
