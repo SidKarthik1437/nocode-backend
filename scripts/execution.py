@@ -2,15 +2,13 @@ import json
 from .functions import *
 
 
-def init():
-    pass
-
-
-# def extractInputs(nodes, fn):
-#     for node in nodes:
-#         if fn == node['label']:
-#             return node['value']
-
+def fetchInputs(ip, nodes):
+    res = []
+    for node in nodes:
+        if node['label'] == ip:
+            res.append(node)
+            
+    return res
 
 def process(dump):
 
@@ -27,26 +25,21 @@ def process(dump):
             if (node['label'] == edge['target']):
                 # print(node['label'], edge['source'])
                 node['inputs'].append(edge['source'])
+    filtered = [node for node in nodes if node['inputs']]
+    for node in filtered:
+        for ip in node['inputs']:
+                for n in filtered:
+                    if n['label'] == ip:
+                        inputs = fetchInputs(ip, nodes)
+                        for i in inputs:
+                                for j in (i['inputs']):
+                                    print(j)
+                                    for k in nodes:
+                                        if k['label'] == j:
+                                            # temp.append(k['value'])
+                                            n.setdefault('inputValues', []).append(k['value'])
+        if (node['inputValues']):
+             print(node['label'], node['inputValues'])
+                                            
 
-    for node in nodes:
-        if not node['type'] in ['value', 'output']:
-
-            res = fetch(node['type'])([getattr(__builtins__[i[1].split('_')[0].lower()], '__call__')(i[0]) for i in [((node['value']), node['label'])  # return
-                                                                                                                     # for all input nodes
-                                                                                                                     for i in node['inputs']
-                                                                                                                     # interate nodes to find input nodes
-                                                                                                                     for node in nodes
-                                                                                                                     # condition to find the input node
-                                                                                                                     if i == node['label']
-
-                                                                                                                     ]])
-            node['outputs'].append(res)
-            node['value'] = res
-
-    for node in nodes:
-        if node['type'] == 'output':
-            node['value'] = ([node['value'] for i in node['inputs']
-                              for node in nodes if i == node['label']])
-            # print()
-
-    return (node for node in nodes if node['type'] == 'output')
+    return nodes, filtered
